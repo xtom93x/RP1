@@ -15,6 +15,15 @@ function daj_level($body){
   } else return False;
 }
 
+function daj_level_vsetko($id_lvl){
+  if ($link=conDB()){
+    if ($result=mysql_query('SELECT * FROM levels WHERE id_lvl='.$id_lvl,$link)){
+      return mysql_fetch_assoc($result);
+    }
+  } 
+  return False;  
+}
+
 function daj_najnovsi_oznam(){
   if ($link=conDB()){
     if ($result=mysql_query('SELECT * FROM oznamy WHERE active=1 ORDER BY datum DESC LIMIT 1',$link)){
@@ -603,6 +612,29 @@ function zmen_heslo($id_user,$heslo){
   return False;
 } 
 
+function zmen_obrazok_titulu($id_lvl,$file,$type="obrazok"){
+  if ($link=conDB()){
+    if ($result=mysql_query('SELECT '.$type.' FROM levels WHERE id_lvl='.$id_lvl,$link)){
+      $row=mysql_fetch_assoc($result);
+      $stary_obrazok=$row[$type];
+      mysql_free_result($result);
+      if ($result=mysql_query('UPDATE levels SET '.$type.'="'.$file['name'].'" WHERE id_lvl='.$id_lvl,$link)){ 
+        if (!move_uploaded_file($file['tmp_name'],"obr/".$file['name'])){ 
+          if ($type=="obrazok") error('Nastala chyba pri presune obrázka.');
+          else if ($type=="obrazok_mini") error('Nastala chyba pri presune miniatúry.');
+        }else{
+          if ($stary_obrazok && $stary_obrazok!="obr/".$file['name'] 
+              && file_exists($stary_obrazok)) unlink($stary_obrazok);
+          return True;
+        }
+      }  
+    }
+  }
+  if ($type=="obrazok") error('Nepodarilo sa zmeniť obrázok titulu.');
+  else if ($type=="obrazok_mini") error('Nepodarilo sa zmeniť miniatúru titulu.');
+  return False;
+}
+
 function zmen_profilovku($id_user,$file){
   if ($link=conDB()){
     if ($result=mysql_query('SELECT profilovka FROM users WHERE id_user='.$id_user,$link)){
@@ -621,6 +653,17 @@ function zmen_profilovku($id_user,$file){
     }
   }
   error('Nepodarilo sa zmeniť profilovku.');
+  return False;
+}
+
+function zmen_udaje_titulu($id_lvl,$nazov,$body){
+  if ($link=conDB()){
+    if ($result=mysql_query("UPDATE levels SET nazov='".addslashes(strip_tags(trim($nazov)))."',
+    body=".$body." WHERE id_lvl=".$id_lvl,$link)){
+      return True;
+    }
+  }
+  error('Nepodarilo sa upraviť údaje titulu.');
   return False;
 }
 
