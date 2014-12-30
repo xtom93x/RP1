@@ -19,6 +19,9 @@ if (isset($_SESSION['user'])){
     <a href='admin_kvizy.php'><div class='entry_right'>
       <figure><img class='img_medium' src="obr/ikona_admin_kvizy.png" alt="Administrácia kvízov"></figure>
     </div></a>
+    <a href='admin_levels.php'><div class='entry_left'>
+      <figure><img class='img_medium' src="obr/ikona_admin_levels.png" alt="Administrácia titulov"></figure>
+    </div></a>
   </main></div>
   <?php
   }else {

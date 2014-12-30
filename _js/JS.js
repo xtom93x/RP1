@@ -10,3 +10,10 @@ function potvrd_zmaz_user(e){
     e.preventDefault();
   }
 }
+
+function potvrd_zmaz_level(e){
+  var con=confirm('Naozaj chceš zmazať tento titul?');
+  if (!con){
+    e.preventDefault();
+  }
+}

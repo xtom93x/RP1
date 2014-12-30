@@ -213,6 +213,23 @@ function pridaj_user($meno,$krstne,$priezvisko,$heslo,$admin,$visible){
   return False;
 }
 
+function pridaj_level($nazov,$body,$obrazok,$obrazok_mini){
+  if($link=conDB()){
+    if ($result=mysql_query('INSERT INTO levels SET nazov="'.addslashes(strip_tags(trim($nazov))).'", body='.$body.',
+        obrazok="'.$obrazok['name'].'", obrazok_mini="'.$obrazok_mini['name'].'"',$link)){
+      if (!move_uploaded_file($obrazok['tmp_name'],"obr/".$obrazok['name'])){ 
+          error('Nastala chyba pri presune obrázka.');
+      }
+      if (!move_uploaded_file($obrazok_mini['tmp_name'],"obr/".$obrazok_mini['name'])){ 
+          error('Nastala chyba pri presune miniatúry.');
+      }
+      return True;
+    }
+  }
+  error('Nepodarilo sa pridať titul.');
+  return False;
+}
+
 function prihlas($meno,$heslo){
   if ($link=conDB()){
     $sql="SELECT * FROM users WHERE meno='".addslashes(strip_tags(trim($meno)))."' AND heslo='".md5(addslashes(strip_tags(trim($heslo))))."' LIMIT 1";
@@ -315,6 +332,44 @@ function vypis_admin_users(){
       <?php  
       }
       echo "</table>\n";
+    }
+  }
+}
+
+function vypis_admin_levels(){
+  if ($link=conDB()){
+    if($result=mysql_query('SELECT * FROM levels ORDER BY body ASC',$link)){
+      ?>
+      <table border=1>
+      <tr><th>Hodnosť</th><th>Bodová hranica</th><th>Obrázok</th><th>Obrázok miniatúra</th><th></th></tr>
+      <?php
+      while ($row=mysql_fetch_assoc($result)){
+        ?>
+        <tr id='<?php echo $row['id_lvl']?>'>
+          <td><?php echo $row['nazov'];?></td><td><?php echo $row['body'];?></td>
+          <td>
+            <a href='obr/<?php echo $row['obrazok'];?>'>
+              <img class=img_small src='obr/<?php echo $row['obrazok'];?>' alt='<?php echo $row['nazov'];?>'>
+            </a>
+          </td>
+          <td>
+            <a href='obr/<?php echo $row['obrazok_mini'];?>'>
+              <img class=img_small src='obr/<?php echo $row['obrazok_mini'];?>' alt='<?php echo $row['nazov'];?>'>
+            </a>
+          </td>
+          <td>
+            <a href='uprav_level.php?id=<?php echo $row['id_lvl']?>'>Uprav titul</a>
+            <form method=post>
+              <input type=hidden name='id_level' value=<?php echo $row['id_lvl'];?>>
+              <input type=submit name='zmaz_level' value='Zmaž titul' onclick='potvrd_zmaz_level(event);'>
+            </form>
+          </td>
+        </tr>
+        <?php
+      }
+      ?>
+      </table>
+      <?php
     }
   }
 }
@@ -471,6 +526,24 @@ function vypis_score($by,$diverg){
         <figcaption>".$level['nazov']."</figcaption></a></figure></td></tr>\n";
   } 
   echo "</table>\n";
+}
+
+function zmaz_level($id_lvl){
+  if ($link=conDB()){
+    if ($result=mysql_query('SELECT obrazok,obrazok_mini FROM levels WHERE id_lvl='.$id_lvl,$link)){
+      $row=mysql_fetch_assoc($result);
+      $obrazok=$row['obrazok'];
+      $obrazok_mini=$row['obrazok_mini'];
+      mysql_free_result($result);
+      if ($result=mysql_query('DELETE FROM levels WHERE id_lvl='.$id_lvl,$link)){
+        unlink("obr/".$obrazok); 
+        unlink("obr/".$obrazok_mini); 
+        return True;
+      }  
+    }
+  }
+  error('Nepodarilo sa zmazať titul.');
+  return False;  
 }
 
 function zmaz_oznam($id_oznam){
