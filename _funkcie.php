@@ -1,5 +1,8 @@
 <?php
 include('_conDB.php');
+date_default_timezone_set('UTC');
+
+
 function daj_level($body){
   if ($link=conDB()){
     if ($result=mysql_query('SELECT * FROM levels WHERE body<='.$body.' ORDER BY body DESC LIMIT 1',$link)){
@@ -450,8 +453,9 @@ function vypis_score($by,$diverg){
   $result_m=mysql_query('SELECT body, krstne, priezvisko, profilovka FROM users WHERE visible=1 ORDER BY '.$by.' '.$diverg,$link);
   ?>
   <table class=zoznam border=1>
-  <tr><th><a href='score.php?by=krstne'>Meno</a> a <a href='score.php?by=priezvisko'>priezvisko</a></th>
-      <th><a href='score.php?by=body'>Body</a></th><th>Hodnosť</th></tr>
+  <tr><th><a href='score.php?by=krstne<?php if ($by=='krstne' && $diverg=='ASC') echo "&diverg=true"?>'>Meno</a>
+   a <a href='score.php?by=priezvisko<?php if ($by=='priezvisko' &&$diverg=='ASC') echo "&diverg=true"?>'>priezvisko</a></th>
+      <th><a href='score.php?by=body<?php if ($by=='body' &&$diverg=='ASC') echo "&diverg=true"?>'>Body</a></th><th>Hodnosť</th></tr>
   <?php
   while ($row=mysql_fetch_assoc($result_m)) {
     $level=daj_level($row['body']);
