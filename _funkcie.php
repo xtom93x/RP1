@@ -177,6 +177,27 @@ function paticka(){?>
 <?php
 }
 
+function pridaj_body($id_user,$body_minis=0,$body_bonus=0){
+  $hlaska="";
+  if ($body_minis) $hlaska.=" +".$body_minis." bodov";
+  if ($body_bonus) $hlaska.=" +".$body_bonus." bonusových bodov";
+  if($link=conDB()){
+    if($result=mysql_query('SELECT priezvisko,krstne,body_minis,body_bonus FROM users WHERE id_user='.$id_user,$link)){
+      $row=mysql_fetch_assoc($result);
+      $name=$row['priezvisko'].' '.$row['krstne'];
+      $body_minis+=$row['body_minis'];
+      $body_bonus+=$row['body_bonus'];
+      if ($body_minis!=0 && $body_minis/2>=$body_bonus) $body=$body_minis+$body_bonus;
+      else $body=round($body_minis*1.5);
+    }else return "Nenašiel sa bojovník s ID ".$id_user;
+    mysql_free_result($result);
+    if ($result=mysql_query('UPDATE users SET body_minis='.$body_minis.', body_bonus='.$body_bonus.',
+    body='.$body.' WHERE id_user='.$id_user,$link)){
+      return $name.$hlaska;
+    }
+  }
+}
+
 function pridaj_oznam($nadpis,$text){
   if ($link=conDB()){
     if ($result=mysql_query('INSERT INTO oznamy SET nadpis="'.addslashes(strip_tags(trim($nadpis))).'", 
@@ -300,6 +321,48 @@ function uprav_pribeh($id_pribeh,$nazov,$text){
   }
   error('Nepodarilo sa upraviť príbeh.');
   return False;
+}
+
+function vypis_admin_body(){
+  if ($link=conDB()){
+    if ($result=mysql_query("SELECT * FROM users ORDER BY priezvisko, meno ASC",$link)){
+      ?>
+      <table>
+      <form method='post'>
+      <tr><th>Priezvisko a meno</th><th>Body za ministrovanie</th><th>Bonusové body</th><th>Body v limite</th></tr>
+      <?php
+      $pocet=0;
+      while ($row=mysql_fetch_assoc($result)){
+        $pocet+=1;
+        ?>
+        <tr>
+          <input type=hidden name='id_user<?php echo $pocet?>' value=<?php echo $row['id_user'];?>>
+          <td><?php echo $row['priezvisko'].' '.$row['krstne']?></td>
+          <td>
+            <label for='body_minis<?php echo $pocet?>'><?php echo $row['body_minis']?> +</label>
+            <input id='body_minis<?php echo $pocet?>' name='body_minis<?php echo $pocet?>' type=text size=10 value=0>
+          </td>
+          <td>
+            <label for='body_bonus<?php echo $pocet?>'><?php echo $row['body_bonus']?> +</label>
+            <input id='body_bonus<?php echo $pocet?>' name='body_bonus<?php echo $pocet?>' type=text size=10 value=0>
+          </td>
+          <td>
+            <label><?php echo $row['body']?></label> 
+          </td>
+        </tr>
+        <?php
+      }
+      ?>
+        <tr>
+          <input type=hidden name='pocet_users' value=<?php echo $pocet;?>>
+          <td><input type=submit name=zapis_body value='Zapíš všetky body'></td>
+          <td></td><td></td>
+        </tr>
+      </form>
+      </table>
+      <?php
+    }
+  }
 }
 
 function vypis_admin_users(){
