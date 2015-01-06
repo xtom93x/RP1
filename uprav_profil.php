@@ -35,21 +35,21 @@ if (isset($_SESSION['user'])){
     <table>
       <form method=post>
         <tr><td><label for=meno>Prihlasovacie meno:</label></td>
-        <td><input type=text size=30 id=meno name=meno value= <?php if (isset($_POST['meno'])) echo $_POST['meno']; else echo $_SESSION['user']['meno'];?> </td></tr>
+        <td><input type=text size=30 id=meno name=meno value='<?php if (isset($_POST['meno'])) echo $_POST['meno']; else echo $_SESSION['user']['meno'];?>' required></td></tr>
         <tr><td></td><td><input type=submit name=zmen_username value="Zmeniť prihlasovacie meno"></td></tr>
       </form>
       <form method=post>
         <tr><td><label for=heslo_old>Staré heslo:</label></td>
-        <td><input type=password size=30 id=heslo_old name=heslo_old></td></tr>
+        <td><input type=password size=30 id=heslo_old name=heslo_old required></td></tr>
         <tr><td><label for=heslo>Nové heslo:</label></td>
-        <td><input type=password size=30 id=heslo name=heslo></td></tr>
+        <td><input type=password size=30 id=heslo name=heslo required></td></tr>
         <tr><td><label for=heslo_rp>Zopakuj nové heslo:</label></td>
-        <td><input type=password size=30 id=heslo_rp name=heslo_rp></td></tr>
+        <td><input type=password size=30 id=heslo_rp name=heslo_rp required></td></tr>
         <tr><td></td><td><input type=submit name=zmen_heslo value="Zmeniť heslo"></td></tr>
       </form>
       <form method="post" enctype="multipart/form-data">
         <tr><td><label for=profilovka>Profilovka (max.1MB):</label></td>
-        <td><input type="file" name="profilovka" id="profilovka" accept='image/jpg,image/jpeg,image/gif,image/png'></td></tr>
+        <td><input type="file" name="profilovka" id="profilovka" accept='image/jpg,image/jpeg,image/gif,image/png' required></td></tr>
         <tr><td></td><td><input type=submit name=zmen_profilovku value="Zmeniť profilovku"></td></tr>
       </form>
     </table>

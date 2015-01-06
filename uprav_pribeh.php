@@ -20,9 +20,9 @@ if (isset($_SESSION['user']) && substr($_SESSION['user']['admin'],5,1)){
     <div class='hlavny'><main>
       <form method=post><table>
         <tr><td><label for=nazov>Názov</label></td>
-          <td><input type=text size=30 maxlength=255 id=nazov name=nazov value='<?php if (isset($_POST['nazov'])) echo $_POST['nazov']; else echo $pribeh['nazov']?>'></td></tr>
+          <td><input type=text size=30 maxlength=255 id=nazov name=nazov value='<?php if (isset($_POST['nazov'])) echo $_POST['nazov']; else echo $pribeh['nazov']?>' required></td></tr>
         <tr><td><label for=text>Obsah</label></td>
-          <td><textarea name=text id=text cols=50 rows=20><?php if (isset($_POST['text'])) echo $_POST['text']; else echo $pribeh['text']?></textarea></td></tr>
+          <td><textarea name=text id=text cols=50 rows=20 required><?php if (isset($_POST['text'])) echo $_POST['text']; else echo $pribeh['text']?></textarea></td></tr>
         <tr><td></td><td><input type=submit name=uprav value='Uprav príbeh'></td></tr>
       </table></form>
     </main></div>

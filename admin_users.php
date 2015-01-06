@@ -38,15 +38,15 @@ if (isset($_SESSION['user'])){
         <h2>Pridaj bojovníka</h2>
         <table>
         <tr><td class=opis_pole><label for=krstne>Krstné meno:</label></td>
-          <td><input type=text size=30 id=krstne name=krstne value='<?php if (isset($_POST['krstne'])) echo $_POST['krstne'];?>'></td></tr>
+          <td><input type=text size=30 id=krstne name=krstne value='<?php if (isset($_POST['krstne'])) echo $_POST['krstne'];?>' required></td></tr>
         <tr><td class=opis_pole><label for=priezvisko>Priezvisko:</label></td>
-          <td><input type=text size=30 id=priezvisko name=priezvisko value='<?php if (isset($_POST['priezvisko'])) echo $_POST['priezvisko'];?>'></td></tr>
+          <td><input type=text size=30 id=priezvisko name=priezvisko value='<?php if (isset($_POST['priezvisko'])) echo $_POST['priezvisko'];?>' required></td></tr>
         <tr><td class=opis_pole><label for=meno>Prihlasovacie meno:</label></td>
-          <td><input type=text size=30 id=meno name=meno value='<?php if (isset($_POST['meno'])) echo $_POST['meno'];?>'></td></tr>
+          <td><input type=text size=30 id=meno name=meno value='<?php if (isset($_POST['meno'])) echo $_POST['meno'];?>' required></td></tr>
         <tr><td class=opis_pole><label for=heslo>Heslo:</label></td>
-          <td><input type=password size=30 id=heslo name=heslo></td></tr>
+          <td><input type=password size=30 id=heslo name=heslo required></td></tr>
         <tr><td class=opis_pole><label for=heslo_rp>Zopakuj heslo:</label></td>
-          <td><input type=password size=30 id=heslo_rp name=heslo_rp></td></tr>
+          <td><input type=password size=30 id=heslo_rp name=heslo_rp required></td></tr>
         <tr><td><label>Admin:</label></td>
           <td><ul>
             <li><input type=radio id=admin_yes name=admin value=1 onchange="admin_change();" <?php if (!isset($_POST['admin']) || (isset($_POST['admin']) && $_POST['admin'])) echo "checked";?>><label for=admin_yes>Áno</label></li>

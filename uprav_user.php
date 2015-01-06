@@ -46,11 +46,11 @@ if (isset($_SESSION['user'])){
       <table>
       <form method=post>
         <tr><td class=opis_pole><label for=krstne>Krstné meno:</label></td>
-          <td><input type=text size=30 id=krstne name=krstne value='<?php if (isset($_POST['krstne'])) echo $_POST['krstne']; else echo $user['krstne'];?>'></td></tr>
+          <td><input type=text size=30 id=krstne name=krstne value='<?php if (isset($_POST['krstne'])) echo $_POST['krstne']; else echo $user['krstne'];?>' required></td></tr>
         <tr><td class=opis_pole><label for=priezvisko>Priezvisko:</label></td>
-          <td><input type=text size=30 id=priezvisko name=priezvisko value='<?php if (isset($_POST['priezvisko'])) echo $_POST['priezvisko']; else echo $user['priezvisko'];?>'></td></tr>
+          <td><input type=text size=30 id=priezvisko name=priezvisko value='<?php if (isset($_POST['priezvisko'])) echo $_POST['priezvisko']; else echo $user['priezvisko'];?>' required></td></tr>
         <tr><td class=opis_pole><label for=meno>Prihlasovacie meno:</label></td>
-          <td><input type=text size=30 id=meno name=meno value='<?php if (isset($_POST['meno'])) echo $_POST['meno']; else echo $user['meno'];?>'></td></tr>
+          <td><input type=text size=30 id=meno name=meno value='<?php if (isset($_POST['meno'])) echo $_POST['meno']; else echo $user['meno'];?>' required></td></tr>
         <tr><td><label>Admin:</label></td>
           <td><ul>
             <li><input type=radio id=admin_yes name=admin value=1 onchange="admin_change();" <?php if ((isset($_POST['admin']) && $_POST['admin']) || (!isset($_POST['admin']) && $user['admin'])) echo "checked";?>><label for=admin_yes>Áno</label></li>
@@ -106,9 +106,9 @@ if (isset($_SESSION['user'])){
       <table>  
       <form method=post>
         <tr><td class=opis_pole><label for=heslo>Nové heslo:</label></td>
-          <td><input type=password size=30 id=heslo name=heslo></td></tr>
+          <td><input type=password size=30 id=heslo name=heslo required></td></tr>
         <tr><td class=opis_pole><label for=heslo_rp>Zopakuj heslo:</label></td>
-          <td><input type=password size=30 id=heslo_rp name=heslo_rp></td></tr>
+          <td><input type=password size=30 id=heslo_rp name=heslo_rp required></td></tr>
         <tr><td></td><td><input type=submit name=zmen_user_heslo value="Zmeň heslo bojovníka"></td></tr>
       </form>
       </table>
@@ -126,7 +126,7 @@ if (isset($_SESSION['user'])){
       <table>
       <form method="post" enctype="multipart/form-data">
         <tr><td><label for=profilovka>Profilovka (max.1MB):</label></td>
-        <td><input type="file" name="profilovka" id="profilovka" accept='image/jpg,image/jpeg,image/gif,image/png'></td></tr>
+        <td><input type="file" name="profilovka" id="profilovka" accept='image/jpg,image/jpeg,image/gif,image/png' required></td></tr>
         <tr><td></td><td><input type=submit name=zmen_profilovku value="Zmeniť profilovku bojovníka"></td></tr>
       </form>
       </table>
