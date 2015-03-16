@@ -27,7 +27,9 @@ function daj_level_vsetko($id_lvl){
 function daj_najnovsi_oznam(){
   if ($link=conDB()){
     if ($result=mysql_query('SELECT * FROM oznamy WHERE active=1 ORDER BY datum DESC LIMIT 1',$link)){
-      return mysql_fetch_assoc($result);
+      if (!mysql_num_rows($result)) return False;
+      $row=mysql_fetch_assoc($result);
+      return $row;
     } else {
       error('Nepodarilo sa načítať najnovší oznam.');
       return False;
@@ -38,6 +40,7 @@ function daj_najnovsi_oznam(){
 function daj_najnovsi_pribeh(){
   if ($link=conDB()){
     if ($result=mysql_query('SELECT * FROM pribehy ORDER BY datum DESC LIMIT 1',$link)){
+      if (!mysql_num_rows($result)) return False;
       $row=mysql_fetch_assoc($result);
       $row['datum']=date('j.n.Y',strtotime($row['datum']));
       return $row;
@@ -497,7 +500,7 @@ function vypis_oznamy($page){
       while($row=mysql_fetch_assoc($result)){?>
         <div class='oznam'><article>
           <h2><?php echo $row['nadpis'];?></h2>
-          <p><?php echo $row['text'];?></p>
+          <p><?php echo str_replace("\n", "<br>", $row['text']);?></p>
           <?php
           if ($row['active']) {
             echo "<p class='text_alarm'>Aktuálny</p>\n";
@@ -551,7 +554,7 @@ function vypis_pribehy($page){
       while($row=mysql_fetch_assoc($result)){?>
         <div class='oznam'><article>
           <h2><?php echo $row['nazov'];?></h2>
-          <p><?php echo $row['text'];?></p>
+          <p><?php echo str_replace("\n", "<br>", $row['text']);?></p>
           <p class='low_prior'><?php echo date('j.n.Y',strtotime($row['datum']));?></p>
           <?php
           if (isset($_SESSION['user']) && substr($_SESSION['user']['admin'],5,1)){

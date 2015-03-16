@@ -1,13 +1,13 @@
 -- phpMyAdmin SQL Dump
--- version 3.4.9
+-- version 4.0.4.2
 -- http://www.phpmyadmin.net
 --
--- Počítač: localhost
--- Vygenerováno: Stř 03. pro 2014, 15:34
--- Verze MySQL: 5.5.20
--- Verze PHP: 5.3.9
+-- Hostiteľ: localhost
+-- Vygenerované: Út 06.Jan 2015, 13:40
+-- Verzia serveru: 5.6.13
+-- Verzia PHP: 5.4.17
 
-SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
 
@@ -17,13 +17,15 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8 */;
 
 --
--- Databáze: `ministranti`
+-- Databáza: `ministranti`
 --
+CREATE DATABASE IF NOT EXISTS `ministranti` DEFAULT CHARACTER SET utf8 COLLATE utf8_slovak_ci;
+USE `ministranti`;
 
 -- --------------------------------------------------------
 
 --
--- Struktura tabulky `full_or_extra`
+-- Štruktúra tabuľky pre tabuľku `full_or_extra`
 --
 
 CREATE TABLE IF NOT EXISTS `full_or_extra` (
@@ -36,7 +38,7 @@ CREATE TABLE IF NOT EXISTS `full_or_extra` (
 -- --------------------------------------------------------
 
 --
--- Struktura tabulky `levels`
+-- Štruktúra tabuľky pre tabuľku `levels`
 --
 
 CREATE TABLE IF NOT EXISTS `levels` (
@@ -46,20 +48,21 @@ CREATE TABLE IF NOT EXISTS `levels` (
   `body` int(11) NOT NULL,
   `nazov` varchar(255) COLLATE utf8_slovak_ci NOT NULL,
   PRIMARY KEY (`id_lvl`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_slovak_ci AUTO_INCREMENT=5 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_slovak_ci AUTO_INCREMENT=8 ;
 
 --
--- Vypisuji data pro tabulku `levels`
+-- Sťahujem dáta pre tabuľku `levels`
 --
 
 INSERT INTO `levels` (`id_lvl`, `obrazok`, `obrazok_mini`, `body`, `nazov`) VALUES
 (3, 'Pastier_svin.png', 'Pastier_svin_mini.png', 0, 'Pastier svíň'),
-(4, 'Rozsievac.png', 'Rozsievac_mini.png', 30, 'Rozsievač');
+(4, 'Rozsievac.png', 'Rozsievac_mini.png', 30, 'Rozsievač'),
+(7, 'Panos.png', 'Panos_mini.png', 65, 'Panoš');
 
 -- --------------------------------------------------------
 
 --
--- Struktura tabulky `oznamy`
+-- Štruktúra tabuľky pre tabuľku `oznamy`
 --
 
 CREATE TABLE IF NOT EXISTS `oznamy` (
@@ -72,7 +75,7 @@ CREATE TABLE IF NOT EXISTS `oznamy` (
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_slovak_ci AUTO_INCREMENT=6 ;
 
 --
--- Vypisuji data pro tabulku `oznamy`
+-- Sťahujem dáta pre tabuľku `oznamy`
 --
 
 INSERT INTO `oznamy` (`id_oznam`, `nadpis`, `text`, `datum`, `active`) VALUES
@@ -82,7 +85,7 @@ INSERT INTO `oznamy` (`id_oznam`, `nadpis`, `text`, `datum`, `active`) VALUES
 -- --------------------------------------------------------
 
 --
--- Struktura tabulky `pribehy`
+-- Štruktúra tabuľky pre tabuľku `pribehy`
 --
 
 CREATE TABLE IF NOT EXISTS `pribehy` (
@@ -94,7 +97,7 @@ CREATE TABLE IF NOT EXISTS `pribehy` (
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_slovak_ci AUTO_INCREMENT=8 ;
 
 --
--- Vypisuji data pro tabulku `pribehy`
+-- Sťahujem dáta pre tabuľku `pribehy`
 --
 
 INSERT INTO `pribehy` (`id_pribeh`, `nazov`, `text`, `datum`) VALUES
@@ -103,7 +106,7 @@ INSERT INTO `pribehy` (`id_pribeh`, `nazov`, `text`, `datum`) VALUES
 -- --------------------------------------------------------
 
 --
--- Struktura tabulky `sluzby`
+-- Štruktúra tabuľky pre tabuľku `sluzby`
 --
 
 CREATE TABLE IF NOT EXISTS `sluzby` (
@@ -116,7 +119,7 @@ CREATE TABLE IF NOT EXISTS `sluzby` (
 -- --------------------------------------------------------
 
 --
--- Struktura tabulky `termins`
+-- Štruktúra tabuľky pre tabuľku `termins`
 --
 
 CREATE TABLE IF NOT EXISTS `termins` (
@@ -132,7 +135,7 @@ CREATE TABLE IF NOT EXISTS `termins` (
 -- --------------------------------------------------------
 
 --
--- Struktura tabulky `users`
+-- Štruktúra tabuľky pre tabuľku `users`
 --
 
 CREATE TABLE IF NOT EXISTS `users` (
@@ -148,16 +151,19 @@ CREATE TABLE IF NOT EXISTS `users` (
   `admin` varchar(7) COLLATE utf8_slovak_ci NOT NULL,
   `visible` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id_user`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_slovak_ci AUTO_INCREMENT=6 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_slovak_ci AUTO_INCREMENT=9 ;
 
 --
--- Vypisuji data pro tabulku `users`
+-- Sťahujem dáta pre tabuľku `users`
 --
 
 INSERT INTO `users` (`meno`, `krstne`, `priezvisko`, `heslo`, `profilovka`, `id_user`, `body`, `body_minis`, `body_bonus`, `admin`, `visible`) VALUES
-('xtom93x', 'Tomáš', 'Žitňanský', 'c61c07388fe2a6d299140cad1e592d07', 'obr/profilovky/profil01.jpg', 1, 0, 0, 0, '1111111', 0),
-('minis', 'Minštrant', 'Prvý', 'caf1a3dfb505ffed0d024130f58c5cfa', '0', 3, 45, 0, 0, '0', 1),
-('root', 'Robin', 'Hood', '75baeedf1d73b68b289decfa8a3dd192', '', 5, 0, 0, 0, '1111111', 0);
+('xtom93x', 'Tomáš', 'Žitňanský', 'c61c07388fe2a6d299140cad1e592d07', 'obr/profilovky/profil01.jpg', 1, 25, 25, 0, '1111111', 0),
+('minis', 'Minštrant', 'Prvý', 'caf1a3dfb505ffed0d024130f58c5cfa', '0', 3, 1, 1, 0, '0', 1),
+('root', 'Robin', 'Hood', '75baeedf1d73b68b289decfa8a3dd192', '', 5, 0, 0, 0, '1111111', 0),
+('hrasko123', 'Emil', 'Hraško', '25f9e794323b453885f5181f1b624d0b', '', 6, 0, 0, 0, '0', 1),
+('hrasko456', 'Janko', 'Hraško', '5d2c5d68495daffd7c4bb7053acd12ad', '', 7, 0, 0, 25, '0', 1),
+('mrkvicka89', 'Janko', 'Mrkvička', '7647966b7343c29048673252e490f736', '', 8, 8, 5, 4, '0', 1);
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

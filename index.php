@@ -16,9 +16,26 @@ if (!isset($_SESSION['user'])) {
     <p>Stojíte vo Vstupnej hale hradu Krista Kráľa. Ak ste členom jeho Gardy, 
       tak sa prihláste u veliteľa stráže a môžete sa voľne pohybovať po celom hrade. 
       Ak ste len náhodný okoloidúci, tak sa môžete pozrieť do 
-      <a href=skore.php>Rytierskej</a> alebo <a href=tron.php>Trónnej sály</a> alebo do
+      <a href=score.php>Rytierskej</a> alebo <a href=tron.php>Trónnej sály</a> alebo do
       <a href=kniznica.php>Knižnice</a>.
     </p>
+  <?php
+    if ($oznam=daj_najnovsi_oznam()){
+    echo "<div class='uvodny_oznam' style='width:98%;'><article>\n";
+    echo "<h2>".$oznam['nadpis']."</h2>\n";
+    echo "<p>".str_replace("\n", "<br>", $oznam['text'])."</p>\n";
+    echo "<p class='low_prior'>".date('j.n.Y',strtotime($oznam['datum']))."</p>\n";
+    echo "</article></div>\n";
+  }
+  
+  echo "<div class='uvodny_pribeh' style='width:98%;'><article>\n";
+  if ($pribeh=daj_najnovsi_pribeh()){
+    echo "<h2>".$pribeh['nazov']."</h2>\n";
+    echo "<p>".str_replace("\n", "<br>", $pribeh['text'])."</p>\n";
+    echo "<p class='low_prior'>".$pribeh['datum']."</p>\n";
+  } 
+  echo "</article></div>\n";
+  ?>
   </main></div>
 <?php
   paticka();
@@ -36,7 +53,7 @@ if (!isset($_SESSION['user'])) {
   if ($oznam=daj_najnovsi_oznam()){
     echo "<div class='uvodny_oznam'><article>\n";
     echo "<h2>".$oznam['nadpis']."</h2>\n";
-    echo "<p>".$oznam['text']."</p>\n";
+    echo "<p>".str_replace("\n", "<br>", $oznam['text'])."</p>\n";
     echo "<p class='low_prior'>".date('j.n.Y',strtotime($oznam['datum']))."</p>\n";
     echo "</article></div>\n";
   }
@@ -44,11 +61,9 @@ if (!isset($_SESSION['user'])) {
   echo "<div class='uvodny_pribeh'><article>\n";
   if ($pribeh=daj_najnovsi_pribeh()){
     echo "<h2>".$pribeh['nazov']."</h2>\n";
-    echo "<p>".$pribeh['text']."</p>\n";
+    echo "<p>".str_replace("\n", "<br>", $pribeh['text'])."</p>\n";
     echo "<p class='low_prior'>".$pribeh['datum']."</p>\n";
-  } else{
-    echo "<p class='text_alarm'>Nepodarilo sa načítať príbeh.</p>\n";
-  }
+  } 
   echo "</article></div>\n";
                          
   daj_uvodne_score();
