@@ -17,3 +17,4 @@ function potvrd_zmaz_level(e){
     e.preventDefault();
   }
 }
+

@@ -19,11 +19,39 @@ if (isset($_SESSION['user'])){
     if (isset($_POST['zmaz_perm'])){
         zmaz_perm_termin($_POST['id']);
     }
+    if (isset($_POST['zmaz_spec'])){
+      zmaz_spec_termin($_POST['id']);      
+    }
     if(isset($_GET['page_spec'])){
-      if (isset($_POST['zmaz_spec'])){
-        zmaz_spec_termin($_POST['id']);
+      if (isset($_POST['pridaj_spec'])&& isset($_POST['datum']) &&
+          isset($_POST['hodiny']) && isset($_POST['minuty']) && isset($_POST['max_pocet'])){
+        $poz='';
+        if (isset($_POST['poznamka'])) $poz=$_POST['poznamka'];
+        if (pridaj_spec_termin($_POST['datum'],$_POST['hodiny'].':'.$_POST['minuty'].":00",$_POST['max_pocet'],$poz)){
+          echo "<h2>Podarilo sa pridať špeciálny termín.</h2>";
+        }    
       }
       vypis_spec_temins($_GET['page_spec']);
+      ?>
+        <hr>
+        <script type='text/javascript' src='_js/kalendar_admin_term.js'></script>
+        <h2>Pridaj nový špeciálny termín</h2>
+        <form method=post><table>
+          <tr><td class=opis_pole><label id=datum_label>Dátum:<?php echo date("j.n.Y");?></label></td><td>
+            <input type=hidden id='datum' name='datum' value='<?php echo date("Y-m-d");?>'>
+            <div id=kalendar_box></div>  
+          </td></tr>
+          <tr><td class=opis_pole><label for=hodiny>Čas:</label></td><td><input type=number class=time_input name=hodiny min=0 max=23 value=12 required>:
+            <input type=number class=time_input name=minuty min=0 max=59 value=0 required></td></tr>
+          <tr></tr>
+          <tr><td class=opis_pole><label for=max_pocet>Počet miest:</label></td><td><input type=number name=max_pocet min=1 value=3 required></td></tr>
+          <tr><td class=opis_pole><label for=poznamka>Poznámka:</label></td><td><textarea name=poznamka id=poznamka cols=50 rows=5></textarea></td></tr>
+          <tr><td></td><td><input type=submit name=pridaj_spec id=pridaj_spec value="Pridaj termín"></td></tr>
+        </table></form>
+        <script>
+          zobrazKalendar(m,r);
+        </script>
+      <?php  
     }else{
       if (isset($_POST['pridaj_perm'])&& isset($_POST['den']) &&
           isset($_POST['hodiny']) && isset($_POST['minuty']) && isset($_POST['max_pocet'])){
@@ -55,7 +83,7 @@ if (isset($_SESSION['user'])){
             <input type=number class=time_input name=minuty min=0 max=59 value=0 required></td></tr>
           <tr></tr>
           <tr><td class=opis_pole><label for=max_pocet>Počet miest:</label></td><td><input type=number name=max_pocet min=1 value=3 required></td></tr>
-          <tr><td class=opis_pole><label for=poznamka>Poznámka:</label></td><td><textarea name=text id=text cols=50 rows=5></textarea></td></tr>
+          <tr><td class=opis_pole><label for=poznamka>Poznámka:</label></td><td><textarea name=poznamka id=poznamka cols=50 rows=5></textarea></td></tr>
           <tr><td></td><td><input type=submit name=pridaj_perm id=pridaj_perm value="Pridaj termín"></td></tr>
         </table></form>
       <?php

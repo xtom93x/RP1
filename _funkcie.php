@@ -234,6 +234,18 @@ function pridaj_pribeh($nazov,$text){
   return False;
 }
 
+function pridaj_spec_termin($datum,$cas,$max_pocet,$poznamka){
+  echo $datum;
+  if ($link=conDB()){
+    if ($result=mysql_query('INSERT INTO termins SET datum="'.$datum.'", cas="'.$cas.'", max_pocet='.$max_pocet.', 
+        poznamka="'.addslashes(strip_tags(trim($poznamka))).'"',$link)){
+      return True;    
+    }
+  }
+  error('Nepodarilo sa pridať špeciálny termín.');
+  return False;
+}
+
 function pridaj_user($meno,$krstne,$priezvisko,$heslo,$admin,$visible){
   if($link=conDB()){
     if ($result=mysql_query('SELECT count(id_user) as pocet FROM users WHERE meno="'.addslashes(strip_tags(trim($meno))).'"',$link)){
@@ -326,6 +338,18 @@ function uprav_oznam($id_oznam,$nadpis,$text,$active){
   return False;
 }
 
+function uprav_perm_termin($id,$den,$cas,$max_pocet,$poznamka){
+  if ($link=conDB()){
+    if (($result=mysql_query('UPDATE permanent_termins SET den='.$den.', cas="'.$cas.'", max_pocet='.$max_pocet.', 
+        poznamka="'.addslashes(strip_tags(trim($poznamka))).'" WHERE id_perm_termin='.$id,$link)) && 
+        (mysql_query('DELETE FROM termins WHERE (datum>CURDATE() or (datum=CURDATE() and cas>CURTIME())) and id_perm_termin='.$id,$link))){
+      return True;    
+    }
+  }
+  error('Nepodarilo sa upraviť permanentný termín.');
+  return False;
+}
+
 function uprav_pribeh($id_pribeh,$nazov,$text){
   if ($link=conDB()){
     if ($result=mysql_query('UPDATE pribehy SET nazov="'.addslashes(strip_tags(trim($nazov))).'", 
@@ -335,6 +359,39 @@ function uprav_pribeh($id_pribeh,$nazov,$text){
   }
   error('Nepodarilo sa upraviť príbeh.');
   return False;
+}
+
+function uprav_spec_termin($id,$datum,$cas,$max_pocet,$poznamka){
+  if ($link=conDB()){
+    if ($result=mysql_query('UPDATE termins SET datum="'.$datum.'", cas="'.$cas.'", max_pocet='.$max_pocet.', 
+        poznamka="'.addslashes(strip_tags(trim($poznamka))).'" WHERE id_termin='.$id,$link)){
+      return True;    
+    }
+  }
+  error('Nepodarilo sa upraviť špeciálny termín.');
+  return False;
+}
+
+function vrat_perm_termin($id){
+  if($link=conDB()){
+    if($result=mysql_query('SELECT * FROM permanent_termins WHERE id_perm_termin='.$_GET['id'].' LIMIT 1',$link)){
+      if(mysql_num_rows($result)==1){
+        return mysql_fetch_assoc($result);
+      }
+    }
+  }
+  return false;  
+}
+
+function vrat_spec_termin($id){
+  if($link=conDB()){
+    if($result=mysql_query('SELECT * FROM termins WHERE id_termin='.$_GET['id'].' LIMIT 1',$link)){
+      if(mysql_num_rows($result)==1){
+        return mysql_fetch_assoc($result);
+      }
+    }
+  }
+  return false;  
 }
 
 function vypis_admin_body(){
@@ -538,6 +595,69 @@ function vypis_oznamy($page){
   ?> </section></div> <?php
 }
 
+function vypis_perm_temins($page){
+  ?>
+  <script>
+    function potvrd_zmaz_perm_termin(e,term){
+      var con=confirm('Naozaj chceš zmazať permanentný termín "'+term+'" ?\nSpolu s termínom sa zmažú aj všetky zapísané služby na daný termín.');
+      if (!con){
+        e.preventDefault();
+      }
+    }
+  </script>
+  <?php
+  $pocet_na_stranke=5;
+  ?> 
+  <div class='termins_box'><section>
+  <h1>Permanentné termíny</h1>
+  <?php
+  if ($link=conDB()){
+    if ($result=mysql_query('SELECT count(id_perm_termin) as pocet FROM permanent_termins',$link)){
+      $row=mysql_fetch_assoc($result);
+      if ($row['pocet']>$pocet_na_stranke){
+        ?> <div class='pages'><nav>
+           <a href='admin_termins.php?page_perm=1'>1.</a> <?php
+        if ($page>4) echo "...";
+        for ($i= ($page>3) ? $page-2 : 2;($i<=ceil($row["pocet"]/$pocet_na_stranke))and($i<=$page+2);$i++){
+          echo "<a href='admin_termins.php?page_perm=".$i."'>".$i.".</a>\n";
+        }
+        $last_page=ceil($row["pocet"]/$pocet_na_stranke);
+        if ($last_page>$page+2){
+          if ($last_page>$page+3) echo "...";
+          echo "<a href='admin_termins.php?page_perm=".$last_page."'>".$last_page.".</a>\n"; 
+        } 
+        ?> </nav></div> <?php
+      }else if (!$row['pocet']){
+        ?> <h2 class="text_alarm">Nenašli sa žiadne permanentné termíny.</h2> <?php
+      }
+    }
+    if ($result=mysql_query('SELECT * FROM permanent_termins ORDER BY den,cas LIMIT '.$pocet_na_stranke*($page-1).','.$pocet_na_stranke,$link)){
+      $dni=array('','Nedeľa','Pondelok','Utorok','Streda','Štvrtok','Piatok','Sobota');
+      ?><table border='1'><tr><th>Deň</th><th>Čas</th><th>Počet miest</th><th>Poznámka</th><th></th></tr><?php
+      while($row=mysql_fetch_assoc($result)){?>
+        <tr>
+          <td><?php echo $dni[$row['den']]?></td>
+          <td><?php echo date('H:i',strtotime($row['cas']))?></td>
+          <td><?php echo $row['max_pocet']?></td>
+          <td><?php echo $row['poznamka']?></td>
+          <td>
+            <a href='uprav_perm_termin.php?id=<?php echo $row['id_perm_termin']?>'>Uprav termín</a>
+            <form method='post'>
+              <input type=hidden name='id' id='id' value=<?php echo $row['id_perm_termin']?>>
+              <input type=submit name=zmaz_perm id=zmaz_perm value='Zmaž termín' onclick='potvrd_zmaz_perm_termin(event,"<?php echo $dni[$row['den']]." o ".date("H:i",strtotime($row['cas']))?>");'>
+            </form>  
+          </td>
+        </tr>
+        <?php
+      }
+      ?></table><?php
+    }
+  }
+  ?>
+  </section></div>
+  <?php
+}
+
 function vypis_pribehy($page){
   $pocet_na_stranke=3;
   ?> <div class='pribehy_box'><section> <?php
@@ -614,11 +734,11 @@ function vypis_score($by,$diverg){
   echo "</table>\n";
 }
 
-function vypis_perm_temins($page){
+function vypis_spec_temins($page){
   ?>
   <script>
-    function potvrd_zmaz_perm_termin(e,term){
-      var con=confirm('Naozaj chceš zmazať permanentný termín "'+term+'" ?\nSpolu s termínom sa zmažú aj všetky zapísané služby na daný termín.');
+    function potvrd_zmaz_spec_termin(e,term){
+      var con=confirm('Naozaj chceš zmazať špeciálny termín "'+term+'" ?');
       if (!con){
         e.preventDefault();
       }
@@ -628,41 +748,41 @@ function vypis_perm_temins($page){
   $pocet_na_stranke=5;
   ?> 
   <div class='termins_box'><section>
-  <h1>Permanentné termíny</h1>
+  <h1>Špeciálne termíny</h1>
   <?php
   if ($link=conDB()){
-    if ($result=mysql_query('SELECT count(id_perm_termin) as pocet FROM permanent_termins',$link)){
+    if ($result=mysql_query('SELECT count(id_termin) as pocet FROM termins WHERE id_perm_termin IS NULL',$link)){
       $row=mysql_fetch_assoc($result);
       if ($row['pocet']>$pocet_na_stranke){
         ?> <div class='pages'><nav>
-           <a href='admin_termins.php?page_perm=1'>1.</a> <?php
+           <a href='admin_termins.php?page_spec=1'>1.</a> <?php
         if ($page>4) echo "...";
         for ($i= ($page>3) ? $page-2 : 2;($i<=ceil($row["pocet"]/$pocet_na_stranke))and($i<=$page+2);$i++){
-          echo "<a href='admin_termins.php?page_perm=".$i."'>".$i.".</a>\n";
+          echo "<a href='admin_termins.php?page_spec=".$i."'>".$i.".</a>\n";
         }
         $last_page=ceil($row["pocet"]/$pocet_na_stranke);
         if ($last_page>$page+2){
           if ($last_page>$page+3) echo "...";
-          echo "<a href='admin_termins.php?page_perm=".$last_page."'>".$last_page.".</a>\n"; 
+          echo "<a href='admin_termins.php?page_spec=".$last_page."'>".$last_page.".</a>\n"; 
         } 
         ?> </nav></div> <?php
       }else if (!$row['pocet']){
-        ?> <h2 class="text_alarm">Nenašli sa žiadne permanentné termíny.</h2> <?php
+        ?> <h2 class="text_alarm">Nenašli sa žiadne špeciálne termíny.</h2> <?php
       }
     }
-    if ($result=mysql_query('SELECT * FROM permanent_termins ORDER BY den,cas LIMIT '.$pocet_na_stranke*($page-1).','.$pocet_na_stranke,$link)){
-      $dni=array('','Nedeľa','Pondelok','Utorok','Streda','Štvrtok','Piatok','Sobota');
-      ?><table border='1'><tr><th>Deň</th><th>Čas</th><th>Počet miest</th><th></th></tr><?php
+    if ($result=mysql_query('SELECT * FROM termins WHERE id_perm_termin IS NULL ORDER BY datum,cas LIMIT '.$pocet_na_stranke*($page-1).','.$pocet_na_stranke,$link)){
+      ?><table border='1'><tr><th>Dátum</th><th>Čas</th><th>Počet miest</th><th>Poznámka</th><th></th></tr><?php
       while($row=mysql_fetch_assoc($result)){?>
         <tr>
-          <td><?php echo $dni[$row['den']]?></td>
+          <td><?php echo date('j.n.Y',strtotime($row['datum']))?></td>
           <td><?php echo date('H:i',strtotime($row['cas']))?></td>
           <td><?php echo $row['max_pocet']?></td>
+          <td><?php echo $row['poznamka']?></td>
           <td>
-            <a href='uprav_perm_termin.php?id='.<?php echo $row['id_perm_termin']?>>Uprav termín</a>
+            <a href='uprav_spec_termin.php?id=<?php echo $row['id_termin']?>'>Uprav termín</a>
             <form method='post'>
-              <input type=hidden name='id' id='id' value=<?php echo $row['id_perm_termin']?>>
-              <input type=submit name=zmaz_perm id=zmaz_perm value='Zmaž termín' onclick='potvrd_zmaz_perm_termin(event,"<?php echo $dni[$row['den']]." o ".date("H:i",strtotime($row['cas']))?>");'>
+              <input type=hidden name='id' id='id' value=<?php echo $row['id_termin']?>>
+              <input type=submit name=zmaz_spec id=zmaz_spec value='Zmaž termín' onclick='potvrd_zmaz_spec_termin(event,"<?php echo date('j.n.Y',strtotime($row['datum']))." o ".date("H:i",strtotime($row['cas']))?>");'>
             </form>  
           </td>
         </tr>
@@ -706,12 +826,22 @@ function zmaz_oznam($id_oznam){
 
 function zmaz_perm_termin($id){
   if ($link=conDB()){
-    if (mysql_query('DELETE FROM termins WHERE id_perm_termin='.$id,$link)&& 
+    if (mysql_query('DELETE FROM termins WHERE (datum>CURDATE() or (datum=CURDATE() and cas>CURTIME())) and id_perm_termin='.$id,$link)&& 
         mysql_query('DELETE FROM permanent_termins WHERE id_perm_termin='.$id,$link)){
       return true;
     }
   }
   error('Nepodarilo sa zmazať permanentný termín.');
+  return false;
+}
+
+function zmaz_spec_termin($id){
+  if ($link=conDB()){
+    if (mysql_query('DELETE FROM termins WHERE id_termin='.$id,$link)){
+      return true;
+    }
+  }
+  error('Nepodarilo sa zmazať špeciálny termín.');
   return false;
 }
 
