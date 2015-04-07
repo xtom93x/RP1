@@ -180,6 +180,16 @@ function paticka(){?>
 <?php
 }
 
+function pocet_zapisanych_na_termin($id){
+  if ($link=conDB()){
+    if ($result=mysql_query("SELECT count(*) AS pocet FROM sluzby WHERE id_termin=".$id,$link)){
+      $row=mysql_fetch_assoc($result);
+      return $row['pocet'];
+    }
+  }
+  return 0;
+}
+
 function pridaj_body($id_user,$body_minis=0,$body_bonus=0){
   $hlaska="";
   if ($body_minis) $hlaska.=" +".$body_minis." bodov";
@@ -338,12 +348,17 @@ function uprav_oznam($id_oznam,$nadpis,$text,$active){
   return False;
 }
 
-function uprav_perm_termin($id,$den,$cas,$max_pocet,$poznamka){
+function uprav_perm_termin($id,$den,$cas,$max_pocet,$poznamka,$rem){
   if ($link=conDB()){
-    if (($result=mysql_query('UPDATE permanent_termins SET den='.$den.', cas="'.$cas.'", max_pocet='.$max_pocet.', 
-        poznamka="'.addslashes(strip_tags(trim($poznamka))).'" WHERE id_perm_termin='.$id,$link)) && 
-        (mysql_query('DELETE FROM termins WHERE (datum>CURDATE() or (datum=CURDATE() and cas>CURTIME())) and id_perm_termin='.$id,$link))){
-      return True;    
+    if ($result=mysql_query('UPDATE permanent_termins SET den='.$den.', cas="'.$cas.'", max_pocet='.$max_pocet.', 
+        poznamka="'.addslashes(strip_tags(trim($poznamka))).'" WHERE id_perm_termin='.$id,$link)){ 
+      if ($rem){
+        if (mysql_query('DELETE FROM termins WHERE (datum>CURDATE() or (datum=CURDATE() and cas>CURTIME())) and id_perm_termin='.$id,$link)){
+          return true;
+        }
+      }else{
+        return True;
+      }    
     }
   }
   error('Nepodarilo sa upraviť permanentný termín.');
@@ -537,6 +552,46 @@ function vypis_hodnosti_pravidla(){
       ?>
       </table>
       <?php
+    }
+  }
+}
+
+function vypis_moje_sluzby($id_user){
+  if ($link=conDB()){
+    if($result=mysql_query("SELECT * FROM sluzby,termins WHERE sluzby.id_user=".$id_user." AND 
+                            sluzby.id_termin=termins.id_termin ORDER BY termins.datum,termins.cas",$link)){
+      if (mysql_num_rows($result)){
+        ?>
+        <table border=1>
+          <tr><th>Dátum</th><th>Čas</th><th>Počet voľných miest</th><th>Poznámka</th><th></th></tr>
+        <?php 
+        while ($row=mysql_fetch_assoc($result)){
+          ?>
+          <tr>
+            <td><?php echo date('j.n.Y',strtotime($row['datum']))?></td>
+            <td><?php echo date('H:i',strtotime($row['cas']))?></td>
+            <td><?php echo ($row['max_pocet']-pocet_zapisanych_na_termin($row['id_termin']))."/".$row['max_pocet']?></td>
+            <td><?php echo $row['poznamka']?></td>
+            <td><form>
+              <input type=hidden name=id value=<?php echo $row['id_sluzba']?> >
+              <input type=submit name=odhlas_sluzbu value='Odhlás službu'>
+            </form></td>
+          </tr>
+          <?php
+        }
+        ?>
+        </table>
+        <?php   
+      }else{
+        echo "<h1>Nemáš zapísané žiadne služby.</h1>\n";
+      }
+      if (3-mysql_num_rows($result)>1){
+        echo "<p>Môžeš si ešte zapísať ".(3-mysql_num_rows($result))." služby.</p>\n";
+      }else if (3-mysql_num_rows($result)==1){
+        echo "<p>Môžeš si ešte zapísať 1 službu.</p>\n";  
+      }else{
+        echo "<p class=text_alarm>Nemôžeš si už zapísať ďalšie služby.</p>\n";
+      }
     }
   }
 }

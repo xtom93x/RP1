@@ -10,7 +10,7 @@ if (isset($_SESSION['user'])){
         isset($_POST['hodiny']) && isset($_POST['minuty']) && isset($_POST['max_pocet'])){
       $poz='';
       if (isset($_POST['poznamka'])) $poz=$_POST['poznamka'];
-      if (uprav_perm_termin($_GET['id'],$_POST['den'],$_POST['hodiny'].':'.$_POST['minuty'].":00",$_POST['max_pocet'],$poz)){
+      if (uprav_perm_termin($_GET['id'],$_POST['den'],$_POST['hodiny'].':'.$_POST['minuty'].":00",$_POST['max_pocet'],$poz,$_POST['rem'])){
         echo "<h2>Podarilo sa upraviť permanentný termín.</h2>";
       }    
     }else if(isset($_GET['id']) && $termin=vrat_perm_termin($_GET['id'])){
@@ -21,8 +21,11 @@ if (isset($_SESSION['user'])){
           var den_elem=document.getElementById('den');
           if (((den_elem.options[den_elem.selectedIndex].value==<?php echo $termin['den']?>)&&
               (document.getElementById('hodiny').value+":"+document.getElementById('minuty').value+":00"=="<?php echo $termin['cas']?>"))&&
-              (document.getElementById('max_pocet').value>=<?php echo $termin['max_pocet']?>))
+              (document.getElementById('max_pocet').value>=<?php echo $termin['max_pocet']?>)){
+              document.getElementById('rem').value=0;
               return;
+          }
+          document.getElementById('rem').value=1;
           var con=confirm('Naozaj chceš upraviť permanentný termín "'+term+'" ?\nSpolu so zmenou sa vymažú všetky zapísané (ešte neuskutočnené) služby viazané na tento termín.');
           if (!con){
             e.preventDefault();
@@ -45,7 +48,8 @@ if (isset($_SESSION['user'])){
           <input type=number class=time_input name=minuty id=minuty min=0 max=59 value=<?php if(isset($_POST['minuty'])) echo $_POST['minuty'];else echo date("i",strtotime($termin['cas']))?> required></td></tr>
         <tr><td class=opis_pole><label for=max_pocet>Počet miest:</label></td><td><input type=number name=max_pocet id=max_pocet min=1 value=<?php if(isset($_POST['max_pocet'])) echo $_POST['max_pocet'];else echo $termin['max_pocet']?> required></td></tr>
         <tr><td class=opis_pole><label for=poznamka>Poznámka:</label></td><td><textarea name=poznamka id=poznamka cols=50 rows=5><?php if(isset($_POST['poznamka'])) echo $_POST['poznamka'];else echo $termin['poznamka']?></textarea></td></tr>
-        <tr><td></td><td><input type=submit name=uprav_perm id=uprav_perm onclick='potvrd_uprav_perm_termin(event,"<?php echo $dni[$termin['den']]." o ".date("H:i",strtotime($termin['cas']))?>");' value="Uprav termín"></td></tr>
+        <tr><td></td><td><input type=submit name=uprav_perm id=uprav_perm onclick='potvrd_uprav_perm_termin(event,"<?php echo $dni[$termin['den']]." o ".date("H:i",strtotime($termin['cas']))?>");' value="Uprav termín"></td>
+          <input type=hidden id=rem name=rem value=0></tr>
       </table></form>
       
       <?php

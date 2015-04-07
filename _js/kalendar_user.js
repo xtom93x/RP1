@@ -16,23 +16,33 @@ function kalendar(mesiac,rok) {
   }
   var pocetDniMesiaca = new Array(0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
   if (((rok % 4 == 0) && (rok % 100 != 0)) || (rok % 400 == 0)) pocetDniMesiaca[2] = 29;
-  var tab="<table border=1><thead><tr><th onclick='pred()'>&lsaquo;&lsaquo;</th><th colspan='5'>"+nazovMesiaca[mesiac]+" "+rok+"</th><th onclick='dal()'>&rsaquo;&rsaquo;</th></tr></thead><tbody><tr><th>Po</th><th>Ut</th><th>Str</th><th>Št</th><th>Pia</th><th>So</th><th style='background-color:gold;'>Ne</th></tr><tr>";
+  var tab="<table border=1><thead><tr><th ";
+  if (rok!=dnes.getFullYear() || mesiac!=dnes.getMonth()+1){
+    tab+="onclick='pred()'";
+  }else{
+    tab+="style='color:gray;'";
+  }
+  tab+=">&lsaquo;&lsaquo;</th><th colspan='5'>"+nazovMesiaca[mesiac]+" "+rok+"</th><th onclick='dal()'>&rsaquo;&rsaquo;</th></tr></thead><tbody><tr><th>Po</th><th>Ut</th><th>Str</th><th>Št</th><th>Pia</th><th>So</th><th style='background-color:gold;'>Ne</th></tr><tr>";
   var i=1;
   for(; i<denTyzn; i++) {
     tab+="<td></td>";
   }
   for(den=1; den<=pocetDniMesiaca[mesiac]; den++) {
-    if(rok==aktual_r && mesiac==aktual_m && den==aktual_d){
+    if(rok==aktual_r && mesiac==aktual_m && den==aktual_d) {
       tab+="<td class='kalendar_aktual'>"+den+"</td>";
-    }else {
+    }else{
       tab+="<td ";
       if (rok==dnes.getFullYear() && mesiac==dnes.getMonth()+1 && den==dnes.getDate()){
-        tab+="style='class='kalendar_dnes' ";
-      }
-      else if (i%7==0){
+        tab+="class='kalendar_dnes' ";
+      }else if (i%7==0){
         tab+="class='kalendar_nedela' ";
       }
-      tab+="onclick='nastav_aktual("+den+','+mesiac+','+rok+")'>"+den+"</td>";
+      if (new Date(rok,mesiac-1,den)<dnes){
+        tab+="style='color:gray;' ";
+      }else{
+        tab+="onclick='daj_terminy("+den+','+mesiac+','+rok+")'";
+      }
+      tab+=">"+den+"</td>";
     }
     if(i % 7 == 0 && den!=pocetDniMesiaca[mesiac]) {
       tab+="</tr><tr>";
@@ -66,13 +76,15 @@ function pred() {
   zobrazKalendar(m,r);
 }
   
-function nastav_aktual(den,mesiac,rok){
-  aktual_d=den;
-  aktual_m=mesiac;
-  aktual_r=rok;
-  document.getElementById("datum_label").innerHTML="Dátum: "+den+'.'+mesiac+'.'+rok;
-  document.getElementById("datum").value=rok+'-'+('0'+mesiac).slice(-2)+'-'+('0'+den).slice(-2); 
-  zobrazKalendar(mesiac,rok);    
+function daj_terminy(den,mesiac,rok){
+  var form=document.createElement('form');
+  form.method='post';
+  var datum=document.createElement('input');
+  datum.name='datum';
+  datum.value=rok+"-"+("0"+mesiac).slice(-2)+"-"+("0"+den).slice(-2);
+  form.appendChild(datum);
+  document.body.appendChild(form);
+  form.submit();    
 }  
   
 function zobrazKalendar(mesiac,rok) {
