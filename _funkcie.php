@@ -131,6 +131,15 @@ function hlavicka($nadpis) {
   <?php
 }
 
+function je_zapisany_na_termin($id_user,$id_termin){
+  $link=conDB();
+  if ($result=mysql_query('SELECT count(*) as pocet FROM sluzby WHERE id_user='.$id_user.' AND id_termin='.$id_termin,$link)){
+    $row=mysql_fetch_assoc($result);
+    return $row['pocet']>0;
+  }
+  return -1;
+}
+
 function obnov_user(){
   if (!isset($_SESSION['user']['id_user'])){
     error('Nie si prihlásený');
@@ -160,6 +169,21 @@ function odhlas(){
   session_unset('user');
 }
 
+function odhlas_sluzbu($id_sluzba,$id_termin){
+  $link=conDB();
+  if (mysql_query('DELETE FROM sluzby WHERE id_sluzba='.$id_sluzba,$link)){
+    echo ":)";
+    if ($result=mysql_query('SELECT id_perm_termin FROM termins WHERE id_termin='.$id_termin,$link)){
+      $row=mysql_fetch_assoc($result);
+      if ($row['id_perm_termin']!=null && pocet_zapisanych_na_termin($id_termin)==0){
+        mysql_query('DELETE FROM termins WHERE id_termin='.$id_termin,$link);
+      }
+    }
+    return true;
+  }
+  return false;
+}
+
 function over_identitu($id_user,$heslo){
   if ($link=conDB()){
     if($result=mysql_query("SELECT id_user FROM users WHERE id_user=".$id_user." AND heslo='".md5(addslashes(strip_tags(trim($heslo))))."' LIMIT 1",$link)){
@@ -178,6 +202,18 @@ function paticka(){?>
   </body>
   </html>
 <?php
+}
+
+function pocet_mojich_sluzieb($id_user){
+  if ($link=conDB()){
+    if ($result=mysql_query("SELECT count(*) as pocet FROM sluzby,termins WHERE sluzby.id_user=".$id_user." AND 
+                            sluzby.id_termin=termins.id_termin AND (termins.datum>CURDATE() OR (termins.datum=CURDATE() AND termins.cas>CURTIME())) 
+                            ORDER BY termins.datum,termins.cas",$link)){
+      $row=mysql_fetch_assoc($result);
+      return $row['pocet'];    
+    }  
+  }
+  return PHP_INT_MAX();
 }
 
 function pocet_zapisanych_na_termin($id){
@@ -559,7 +595,8 @@ function vypis_hodnosti_pravidla(){
 function vypis_moje_sluzby($id_user){
   if ($link=conDB()){
     if($result=mysql_query("SELECT * FROM sluzby,termins WHERE sluzby.id_user=".$id_user." AND 
-                            sluzby.id_termin=termins.id_termin ORDER BY termins.datum,termins.cas",$link)){
+                            sluzby.id_termin=termins.id_termin AND (termins.datum>CURDATE() OR (termins.datum=CURDATE() AND termins.cas>CURTIME())) 
+                            ORDER BY termins.datum,termins.cas",$link)){
       if (mysql_num_rows($result)){
         ?>
         <table border=1>
@@ -572,8 +609,9 @@ function vypis_moje_sluzby($id_user){
             <td><?php echo date('H:i',strtotime($row['cas']))?></td>
             <td><?php echo ($row['max_pocet']-pocet_zapisanych_na_termin($row['id_termin']))."/".$row['max_pocet']?></td>
             <td><?php echo $row['poznamka']?></td>
-            <td><form>
-              <input type=hidden name=id value=<?php echo $row['id_sluzba']?> >
+            <td><form method=post>
+              <input type=hidden name=id_sluzba value=<?php echo $row['id_sluzba']?> >
+              <input type=hidden name=id_termin value=<?php echo $row['id_termin']?> >            
               <input type=submit name=odhlas_sluzbu value='Odhlás službu'>
             </form></td>
           </tr>
@@ -766,7 +804,7 @@ function vypis_score($by,$diverg){
   $link=conDB();
   if ($diverg) $diverg='DESC';
   else $diverg='ASC';
-  $result_m=mysql_query('SELECT body, krstne, priezvisko, profilovka FROM users WHERE visible=1 ORDER BY '.$by.' '.$diverg,$link);
+  if($result_m=mysql_query('SELECT body, krstne, priezvisko, profilovka FROM users WHERE visible=1 ORDER BY '.$by.' '.$diverg,$link)){
   ?>
   <table class=zoznam border=1>
   <tr><th><a href='score.php?by=krstne<?php if ($by=='krstne' && $diverg=='ASC') echo "&diverg=true"?>'>Meno</a>
@@ -787,6 +825,58 @@ function vypis_score($by,$diverg){
         <figcaption>".$level['nazov']."</figcaption></a></figure></td></tr>\n";
   } 
   echo "</table>\n";
+  }
+}
+
+function vypis_sluzby($datum){
+  if (date('Y-m-d')>$datum){
+    echo "<h2 class=text_alarm>Nepovolený dátum.</h2>\n";
+    return;
+  }
+  $link=conDB();
+  if ($result=mysql_query("SELECT perms.cas AS cas, perms.id_perm_termin AS id_perm_termin, termins.datum AS datum,
+                           termins.id_termin AS id_termin, perms.max_pocet AS max_pocet, perms.poznamka AS poznamka 
+                           FROM (SELECT * FROM permanent_termins WHERE den=DAYOFWEEK('$datum')) AS perms 
+                           LEFT JOIN termins ON (perms.id_perm_termin=termins.id_perm_termin AND termins.datum='".$datum."') UNION
+                           SELECT termins.cas AS cas, null AS id_perm_termin, termins.datum AS datum,
+                           termins.id_termin AS id_termin, termins.max_pocet AS max_pocet, termins.poznamka AS poznamka 
+                           FROM termins WHERE datum='$datum' AND termins.id_perm_termin is NULL ORDER BY cas",$link)){
+    if (mysql_num_rows($result)<1){
+      echo "<h2>Nenašli sa žiadne termíny služieb.</h2>\n";
+      return;
+    } 
+    ?>
+    <hr>
+    <table border=1>
+      <tr><th>Dátum</th><th>Čas</th><th>Počet voľných miest</th><th>Poznámka</th><th></th></tr>
+    <?php
+    while ($row=mysql_fetch_assoc($result)){
+    ?> 
+      <tr>
+        <td><?php echo date('j.n.Y',strtotime($datum))?></td>
+        <td><?php echo $row['cas']?></td>
+        <td><?php if ($row['id_termin']==null) echo $row['max_pocet']."/".$row['max_pocet']; else echo ($row['max_pocet']-pocet_zapisanych_na_termin($row['id_termin']))."/".$row['max_pocet']?></td>
+        <td><?php echo $row['poznamka']?></td>
+        <td>
+        <?php
+          $pocet=pocet_mojich_sluzieb($_SESSION['user']['id_user']);
+          if ($pocet<3 && ($row['id_termin']==null || (pocet_zapisanych_na_termin($row['id_termin'])<$row['max_pocet'] && !je_zapisany_na_termin($_SESSION['user']['id_user'],$row['id_termin'])))){
+          ?>
+          <form method=post>
+            <input type=hidden name=id_termin value=<?php echo $row['id_termin']?>>
+            <input type=hidden name=id_perm_termin value=<?php echo $row['id_perm_termin']?>>
+            <input type=hidden name=datum value='<?php echo $datum?>'>
+            <input type=submit name=zapis_sluzbu value='Zapíš službu'>
+          </form>
+        <?php
+        }
+        ?>
+        </td>
+      </tr>
+    <?php
+    }
+    ?></table><?php
+  }
 }
 
 function vypis_spec_temins($page){
@@ -849,6 +939,37 @@ function vypis_spec_temins($page){
   ?>
   </section></div>
   <?php
+}
+
+function zapis_sluzbu($id_user,$id_termin,$id_perm_termin,$datum){
+  if ($id_termin==null){
+    $link=conDB();
+    if ($result=mysql_query("SELECT * FROM permanent_termins WHERE id_perm_termin=$id_perm_termin",$link)){
+      $row=mysql_fetch_assoc($result);
+      if ($result=mysql_query("INSERT INTO termins SET id_perm_termin=".$id_perm_termin.", cas='".$row['cas']."', datum='".$datum."', 
+                               max_pocet=".$row['max_pocet'].", poznamka='".$row['poznamka']."'",$link)){
+        if($result=mysql_query('SELECT LAST_INSERT_ID() as id',$link)){
+          $row=mysql_fetch_assoc($result);
+          $id_termin=$row['id'];
+          if(mysql_query("INSERT INTO sluzby SET id_user=".$id_user.", id_termin=".$id_termin,$link)){
+            return true;
+          }
+        }                         
+      }
+    }  
+    return false;
+  }
+  $link=conDB();
+  if ($result=mysql_query("SELECT * FROM termins WHERE id_termin=".$id_termin,$link)){
+    if ($row=mysql_fetch_assoc($result)){
+      if((pocet_zapisanych_na_termin($id_termin)<$row['max_pocet']) &&
+         !je_zapisany_na_termin($id_user,$id_termin) &&
+         mysql_query("INSERT INTO sluzby SET id_user=".$id_user.", id_termin=".$id_termin,$link)){
+        return true;
+      }
+    }  
+  }
+  return false; 
 }
 
 function zmaz_level($id_lvl){

@@ -37,7 +37,7 @@ function kalendar(mesiac,rok) {
       }else if (i%7==0){
         tab+="class='kalendar_nedela' ";
       }
-      if (new Date(rok,mesiac-1,den)<dnes){
+      if (new Date(rok,mesiac-1,den+1)<dnes){
         tab+="style='color:gray;' ";
       }else{
         tab+="onclick='daj_terminy("+den+','+mesiac+','+rok+")'";
