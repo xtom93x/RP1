@@ -172,7 +172,6 @@ function odhlas(){
 function odhlas_sluzbu($id_sluzba,$id_termin){
   $link=conDB();
   if (mysql_query('DELETE FROM sluzby WHERE id_sluzba='.$id_sluzba,$link)){
-    echo ":)";
     if ($result=mysql_query('SELECT id_perm_termin FROM termins WHERE id_termin='.$id_termin,$link)){
       $row=mysql_fetch_assoc($result);
       if ($row['id_perm_termin']!=null && pocet_zapisanych_na_termin($id_termin)==0){
@@ -699,7 +698,7 @@ function vypis_perm_temins($page){
     }
   </script>
   <?php
-  $pocet_na_stranke=5;
+  $pocet_na_stranke=10;
   ?> 
   <div class='termins_box'><section>
   <h1>Permanentné termíny</h1>
@@ -879,6 +878,100 @@ function vypis_sluzby($datum){
   }
 }
 
+function vypis_sluzby_admin($page=1){
+  ?>
+  <script>
+    function potvrd_zmaz_termin(e,term){
+      var con=confirm('Naozaj chceš zmazať termín "'+term+'" ?\nSpolu s ním zmažeš aj všetky záznami o službách v tomto termíne.');
+      if (!con){
+        e.preventDefault();
+      }
+    }
+  </script>
+  <?php
+  $pocet_na_stranke=10;
+  ?> 
+  <div class='termins_box'><section>
+  <?php
+  if ($link=conDB()){
+    if ($result=mysql_query('SELECT count(id_termin) as pocet FROM termins WHERE datum<CURDATE() OR (datum=CURDATE() AND cas<CURTIME())',$link)){
+      $row=mysql_fetch_assoc($result);
+      if ($row['pocet']>$pocet_na_stranke){
+        ?> <div class='pages'><nav>
+           <a href='sluzby.php?page=1'>1.</a> <?php
+        if ($page>4) echo "...";
+        for ($i= ($page>3) ? $page-2 : 2;($i<=ceil($row["pocet"]/$pocet_na_stranke))and($i<=$page+2);$i++){
+          echo "<a href='sluzby.php?page=".$i."'>".$i.".</a>\n";
+        }
+        $last_page=ceil($row["pocet"]/$pocet_na_stranke);
+        if ($last_page>$page+2){
+          if ($last_page>$page+3) echo "...";
+          echo "<a href='sluzby.php?page=".$last_page."'>".$last_page.".</a>\n"; 
+        } 
+        ?> </nav></div> <?php
+      }else if (!$row['pocet']){
+        ?> <h2 class="text_alarm">Nenašli sa žiadne ukončené termíny.</h2> <?php
+      }
+    }
+    if ($result=mysql_query('SELECT * FROM termins WHERE datum<CURDATE() OR (datum=CURDATE() AND cas<CURTIME()) ORDER BY datum,cas LIMIT '.$pocet_na_stranke*($page-1).','.$pocet_na_stranke,$link)){
+      ?><table border='1'><tr><th>Dátum</th><th>Čas</th><th>Zapísaní</th><th>Poznámka</th><th></th></tr><?php
+      while($row=mysql_fetch_assoc($result)){?>
+        <tr>
+          <td><?php echo date('j.n.Y',strtotime($row['datum']))?></td>
+          <td><?php echo date('H:i',strtotime($row['cas']))?></td>
+          <td><?php 
+            if($result_sluzby=mysql_query('SELECT sluzby.id_sluzba AS id_sluzba, sluzby.id_user AS id_user, users.krstne AS krstne, users.priezvisko AS priezvisko FROM sluzby,users 
+                                           WHERE sluzby.id_termin='.$row['id_termin'].' AND 
+                                           sluzby.id_user=users.id_user ORDER BY priezvisko, krstne',$link)){
+              
+              ?><table><form method=post><?php
+              $pocet=0;
+              while ($rowU=mysql_fetch_assoc($result_sluzby)){
+                $pocet++;
+              ?>
+                <tr>
+                  <td>
+                    <?php echo $rowU['krstne']." ".$rowU['priezvisko'];?>
+                    <input type=hidden name=id_user<?php echo $pocet?> value=<?php echo $rowU['id_user']?>>
+                    <input type=hidden name=id_sluzba<?php echo $pocet?> value=<?php echo $rowU['id_sluzba']?>>  
+                  </td> 
+                  <td><input type=text name=body_bonus<?php echo $pocet;?> id=body_bonus<?php echo $pocet;?>></td>
+                </tr>
+              <?php 
+              }
+              if ($pocet){
+              ?>
+                <tr>
+                  <td>
+                    <input type=hidden name=pocet_users value=<?php echo $pocet?>>
+                    <input type=hidden name=id_termin value=<?php echo $row['id_termin']?>>
+                  </td>
+                  <td><input type=submit name=zapis_body_z_terminu value="Zapíš body"></td>
+                </tr>
+              <?php
+              }
+              ?></form></table><?php                               
+            }
+          
+          ?></td>
+          <td><?php echo $row['poznamka']?></td>
+          <td>
+            <form method='post'>
+              <input type=hidden name='id' id='id' value=<?php echo $row['id_termin']?>>
+              <input type=submit name=zmaz_termin id=zmaz_termin value='Zmaž termín' <?php if(pocet_zapisanych_na_termin($row['id_termin'])>0){?> onclick='potvrd_zmaz_termin(event,"<?php echo date('j.n.Y',strtotime($row['datum']))." o ".date("H:i",strtotime($row['cas']))?>");'<?php } ?>>
+            </form>  
+          </td>
+        </tr>
+        <?php
+      }
+      ?></table><?php
+    }
+  }
+  ?>
+  </section></div>
+  <?php
+}
+
 function vypis_spec_temins($page){
   ?>
   <script>
@@ -890,7 +983,7 @@ function vypis_spec_temins($page){
     }
   </script>
   <?php
-  $pocet_na_stranke=5;
+  $pocet_na_stranke=10;
   ?> 
   <div class='termins_box'><section>
   <h1>Špeciálne termíny</h1>
@@ -1002,8 +1095,12 @@ function zmaz_oznam($id_oznam){
 
 function zmaz_perm_termin($id){
   if ($link=conDB()){
+    $result=mysql_query('SELECT id_termin FROM termins WHERE (datum>CURDATE() or (datum=CURDATE() and cas>CURTIME())) and id_perm_termin='.$id,$link);
     if (mysql_query('DELETE FROM termins WHERE (datum>CURDATE() or (datum=CURDATE() and cas>CURTIME())) and id_perm_termin='.$id,$link)&& 
         mysql_query('DELETE FROM permanent_termins WHERE id_perm_termin='.$id,$link)){
+      while ($row=mysql_fetch_assoc($result)){
+        mysql_query('DELETE FROM sluzby WHERE id_termin='.$row['id_termin'],$link);
+      }
       return true;
     }
   }
@@ -1011,13 +1108,14 @@ function zmaz_perm_termin($id){
   return false;
 }
 
-function zmaz_spec_termin($id){
+function zmaz_spec_termin($id,$erOFF=0){
   if ($link=conDB()){
-    if (mysql_query('DELETE FROM termins WHERE id_termin='.$id,$link)){
+    if (mysql_query('DELETE FROM termins WHERE id_termin='.$id,$link) && mysql_query('DELETE FROM sluzby WHERE id_termin='.$id,$link)){
       return true;
     }
   }
-  error('Nepodarilo sa zmazať špeciálny termín.');
+  if (!$erOFF)
+    error('Nepodarilo sa zmazať špeciálny termín.');
   return false;
 }
 
